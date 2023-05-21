@@ -1,7 +1,15 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import Joi from 'joi';
 
-const User = mongoose.model(
+export interface IUser extends mongoose.Document {
+	name: string;
+	email: string;
+	password: string;
+	likedPosts: Schema.Types.ObjectId[];
+	dislikedPosts: Schema.Types.ObjectId[];
+}
+
+const User = mongoose.model<IUser>(
 	'User',
 	new mongoose.Schema({
 		name: {
@@ -23,6 +31,18 @@ const User = mongoose.model(
 			minlength: 5,
 			maxlength: 1024,
 		},
+		likedPosts: [
+			{
+				type: Schema.Types.ObjectId,
+				ref: 'Post',
+			},
+		],
+		dislikedPosts: [
+			{
+				type: Schema.Types.ObjectId,
+				ref: 'Post',
+			},
+		],
 	}),
 );
 

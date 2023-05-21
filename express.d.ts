@@ -1,5 +1,12 @@
+import * as express from 'express';
+
+type AuthUser = {
+	id: string;
+};
 declare global {
 	namespace Express {
-		interface Request {}
+		interface Request {
+			authUser: AuthUser;
+		}
 	}
 }
