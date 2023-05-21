@@ -63,4 +63,11 @@ router.post('/logout', async (req: Request, res: Response) => {
 	return res.json({ token });
 });
 
+router.get('/about', async (_req: Request, res: Response) => {
+	const logo = `${process.env.DOMAIN_NAME}/static/images/logo.png`;
+	const name = 'Твітер для бідних';
+	const about = `Ця платформа для людей, які хочуть щось тут побалакати і не платити Ілону 8 баксів за верифікацію.`;
+	res.json({ logo, about, name, relativeLogo: '/static/images/logo.png' });
+});
+
 export default router;
