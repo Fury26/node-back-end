@@ -29,7 +29,8 @@ const User = mongoose.model<IUser>(
 			type: String,
 			required: true,
 			minlength: 5,
-			maxlength: 1024,
+			maxlength: 30,
+			select: false,
 		},
 		likedPosts: [
 			{
@@ -50,7 +51,7 @@ function validateUser(user: typeof User) {
 	const schema = Joi.object({
 		name: Joi.string().min(5).max(50).required(),
 		email: Joi.string().min(5).max(255).required().email(),
-		password: Joi.string().min(5).max(255).required(),
+		password: Joi.string().min(5).max(30).required(),
 	});
 	// Joi.te(user, schema);
 	return schema.validate(user);

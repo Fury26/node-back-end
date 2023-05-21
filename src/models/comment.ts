@@ -1,4 +1,10 @@
+import Joi from 'joi';
 import mongoose, { Schema } from 'mongoose';
+
+export interface IComment extends mongoose.Document {
+	text: string;
+	creator: Schema.Types.ObjectId;
+}
 
 const Comment = mongoose.model(
 	'Comment',
@@ -10,7 +16,7 @@ const Comment = mongoose.model(
 				minlength: 1,
 				maxlength: 100,
 			},
-			owner: {
+			creator: {
 				type: Schema.Types.ObjectId,
 				ref: 'User',
 				required: true,
@@ -20,4 +26,11 @@ const Comment = mongoose.model(
 	),
 );
 
+function validateComment(comment: IComment) {
+	const schema = Joi.object({
+		text: Joi.string().min(1).max(100).required(),
+	});
+	return schema.validate(comment);
+}
+export { validateComment };
 export default Comment;

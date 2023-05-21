@@ -33,7 +33,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 router.post('/login', async (req: Request, res: Response) => {
-	const user = await User.findOne({ email: req.body.email });
+	const user = await User.findOne({ email: req.body.email }).select('password');
 	console.log('user', user);
 
 	if (!user) {
