@@ -11,8 +11,12 @@ const app = express();
 
 const start = async () => {
 	try {
-		await mongoose.connect(process.env.MONGO_DB_URL!, { autoCreate: true });
-		console.info('MongoClient connected!');
+		if (process.env.MONGO_DB_URL) {
+			await mongoose.connect(process.env.MONGO_DB_URL!, { autoCreate: true });
+			console.info('MongoClient connected!');
+		} else {
+			console.log('Missing credentials for Mongo DB');
+		}
 	} catch (err) {
 		return console.error('Mongo DB connection error', err);
 	}
