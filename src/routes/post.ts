@@ -26,21 +26,6 @@ router.post('/', async (req: Request, res: Response) => {
 	return;
 });
 
-router.get('/me', async (req: Request, res: Response) => {
-	try {
-		const user = await User.findById(req.authUser.id).populate('Post');
-		if (!user) {
-			return res.json({ error: `Can't get user information` }).status(404);
-		}
-		const post = new Post({ title: req.body.title, body: req.body.body, creator: user, comments: [] });
-		await post.save();
-		res.json({ post }).status(201);
-	} catch {
-		res.json({ error: `Can't create your post!` }).status(400);
-	}
-	return;
-});
-
 router.patch('/:id/statistics', async (req: Request, res: Response) => {
 	const { type } = req.body;
 	try {
@@ -129,6 +114,45 @@ router.delete('/:postId', async (req: Request, res: Response) => {
 		res.json('ok').status(204);
 	} catch {
 		res.json({ error: `Can't delete post: ${req.params.commentId}!` }).status(400);
+	}
+	return;
+});
+
+router.get('/feed', async (req: Request, res: Response) => {
+	const page = +(req.query.page || 1);
+	const perPage = +(req.query.perPage || 30);
+
+	try {
+		const user = await User.findById(req.authUser.id);
+		if (!user) {
+			return res.json({ error: `Unauthorized user. You need to be loged in to see other peoples posts!` }).status(404);
+		}
+		const posts = await Post.find({}, {}, { limit: perPage, skip: perPage * (page - 1), sort: { created_at: '-1' } });
+		const count = await Post.count();
+		res.json({ posts, metadata: { count, perPage, page } });
+	} catch {
+		res.json({ error: 'Something went wrong. Try update your feed later.' }).status(400);
+	}
+	return;
+});
+
+router.get('/me', async (req: Request, res: Response) => {
+	const page = +(req.query.page || 1);
+	const perPage = +(req.query.perPage || 30);
+	try {
+		const user = await User.findById(req.authUser.id);
+		if (!user) {
+			return res.json({ error: `Unknown user.` }).status(404);
+		}
+		const posts = await Post.find(
+			{ owner: user },
+			{},
+			{ limit: perPage, skip: perPage * (page - 1), sort: { created_at: '-1' } },
+		);
+		const count = await Post.count({ owner: user });
+		res.json({ posts, metadata: { count, perPage, page } });
+	} catch {
+		res.json({ error: 'Something went wrong. Try update your feed later.' }).status(400);
 	}
 	return;
 });
