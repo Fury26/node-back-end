@@ -81,7 +81,7 @@ router.post('/:postId/comment', async (req: Request, res: Response) => {
 		if (!post) {
 			return res.status(404).json({ error: `Can't get post information` });
 		}
-		const comment = new Comment({ text: req.body.text, creator: user });
+		const comment = new Comment({ text: req.body.text, creator: user, post });
 		await comment.save();
 		res.status(201).json({ comment });
 	} catch {
@@ -134,6 +134,42 @@ router.get('/feed', async (req: Request, res: Response) => {
 		).populate('owner');
 		const count = await Post.count();
 		res.json({ posts, metadata: { count, perPage, page } });
+	} catch {
+		res.status(400).json({ error: 'Something went wrong. Try update your feed later.' });
+	}
+	return;
+});
+
+router.get('/:postId', async (req: Request, res: Response) => {
+	try {
+		const post = await Post.findById(req.params.postId).populate('owner');
+		res.status(200).json({ post });
+	} catch {
+		res.status(400).json({ error: `Can't get post: ${req.params.postId}!` });
+	}
+	return;
+});
+
+router.get('/:postId/comments', async (req: Request, res: Response) => {
+	const page = +(req.query.page || 1);
+	const perPage = +(req.query.perPage || 30);
+
+	try {
+		const user = await User.findById(req.authUser.id);
+		if (!user) {
+			return res.status(404).json({ error: `Unauthorized user. You need to be loged in to see other peoples posts!` });
+		}
+		const post = await Post.findById(req.params.postId).populate('owner');
+		if (!post) {
+			return res.status(404).json({ error: `Can't get post information` });
+		}
+		const comments = await Comment.find(
+			{ post },
+			{},
+			{ limit: perPage, skip: perPage * (page - 1), sort: { created_at: '-1' } },
+		);
+		const count = await Comment.count({ post });
+		res.json({ comments, metadata: { count, perPage, page } });
 	} catch {
 		res.status(400).json({ error: 'Something went wrong. Try update your feed later.' });
 	}

@@ -21,6 +21,11 @@ const Comment = mongoose.model(
 				ref: 'User',
 				required: true,
 			},
+			post: {
+				type: Schema.Types.ObjectId,
+				ref: 'Post',
+				required: true,
+			},
 		},
 		{ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } },
 	),
