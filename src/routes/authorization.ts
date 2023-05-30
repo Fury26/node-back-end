@@ -29,7 +29,7 @@ router.post('/', async (req: Request, res: Response) => {
 		});
 		await user.save();
 		const token = generateToken(user.id);
-		return res.json({ token }).status(201);
+		return res.status(201).json({ token });
 	}
 });
 
@@ -38,13 +38,13 @@ router.post('/login', async (req: Request, res: Response) => {
 	console.log('user', user);
 
 	if (!user) {
-		return res.status(400).send({ error: 'Incorrect email or password!' });
+		return res.status(400).json({ error: 'Incorrect email or password!' });
 	}
 	const isValidPassword = await argon.verify(user.password, req.body.password, {
 		secret: Buffer.from(process.env.ARGON_SECRET_KEY!),
 	});
 	if (!isValidPassword) {
-		return res.status(400).send({ error: 'Incorrect email or password!' });
+		return res.status(400).json({ error: 'Incorrect email or password!' });
 	}
 	const token = generateToken(user.id);
 	return res.json({ token });

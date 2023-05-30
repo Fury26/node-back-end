@@ -3,11 +3,19 @@ import userRoutes from './routes/user';
 import postRoutes from './routes/post';
 
 import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
 dotenv.config();
+
 const app = express();
+
+const domains = 'http://localhost:3000';
+const corsOptions = {
+	origin: domains ? domains.split(',') : '*',
+	exposedHeaders: ['tableau-site-id', 'tableau-user-id', 'voc-user-id'],
+};
 
 const start = async () => {
 	try {
@@ -22,6 +30,7 @@ const start = async () => {
 	}
 
 	app.use(express.json());
+	app.use(cors(corsOptions));
 	app.use('/static', express.static(path.join(__dirname, '../public')));
 	app.use('/api/auth', authRoutes);
 	app.use('/api/users', userRoutes);

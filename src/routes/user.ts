@@ -8,11 +8,11 @@ router.get('/me', async (req: Request, res: Response) => {
 	try {
 		const user = await User.findById(req.authUser.id);
 		if (!user) {
-			return res.json({ error: `Can't get user information` }).status(404);
+			return res.status(404).json({ error: `Can't get user information` });
 		}
 		res.json({ user });
 	} catch {
-		res.json({ error: `Can't get user information` }).status(400);
+		res.status(400).json({ error: `Can't get user information` });
 	}
 	return;
 });

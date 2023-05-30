@@ -15,11 +15,11 @@ router.post('/', async (req: Request, res: Response) => {
 	try {
 		const user = await User.findById(req.authUser.id);
 		if (!user) {
-			return res.json({ error: `Can't get user information` }).status(404);
+			return res.status(404).json({ error: `Can't get user information` });
 		}
 		const post = new Post({ title: req.body.title, body: req.body.body, owner: user, comments: [] });
 		await post.save();
-		res.json({ post }).status(201);
+		res.status(201).json({ post });
 	} catch {
 		res.json({ error: `Can't create your post!` }).status(400);
 	}
@@ -32,36 +32,36 @@ router.patch('/:id/statistics', async (req: Request, res: Response) => {
 		const user = await User.findById(req.authUser.id);
 
 		if (!user) {
-			return res.json({ error: `Can't get user information` }).status(404);
+			return res.status(404).json({ error: `Can't get user information` });
 		}
 		const post = await Post.findById(req.params.id);
 		if (!post) {
-			return res.json({ error: `Can't get post information` }).status(404);
+			return res.status(404).json({ error: `Can't get post information` });
 		}
 		switch (type) {
 			case 'like': {
 				const { error } = PostController.likePost(post, user);
 				if (error) {
-					return res.json({ error }).status(400);
+					return res.status(400).json({ error });
 				}
 				break;
 			}
 			case 'dislike': {
 				const { error } = PostController.dislikePost(post, user);
 				if (error) {
-					return res.json({ error }).status(400);
+					return res.status(400).json({ error });
 				}
 				break;
 			}
 			default: {
-				return res.json({ error: 'Passed type is not supported!' }).status(400);
+				return res.status(400).json({ error: 'Passed type is not supported!' });
 			}
 		}
 		await post.save();
 		await user.save();
-		res.json({ post }).status(201);
+		res.status(201).json({ post: { ...post.toObject(), owner: user }, user });
 	} catch {
-		res.json({ error: `Can't like post: ${req.params.id}!` }).status(400);
+		res.status(400).json({ error: `Can't like post: ${req.params.id}!` });
 	}
 	return;
 });
@@ -75,17 +75,17 @@ router.post('/:postId/comment', async (req: Request, res: Response) => {
 		const user = await User.findById(req.authUser.id);
 
 		if (!user) {
-			return res.json({ error: `Can't get user information` }).status(404);
+			return res.status(404).json({ error: `Can't get user information` });
 		}
-		const post = await Post.findById(req.params.postId);
+		const post = await Post.findById(req.params.postId).populate('owner');
 		if (!post) {
-			return res.json({ error: `Can't get post information` }).status(404);
+			return res.status(404).json({ error: `Can't get post information` });
 		}
 		const comment = new Comment({ text: req.body.text, creator: user });
 		await comment.save();
-		res.json({ comment }).status(201);
+		res.status(201).json({ comment });
 	} catch {
-		res.json({ error: `Can't add comment for post: ${req.params.postId}!` }).status(400);
+		res.status(400).json({ error: `Can't add comment for post: ${req.params.postId}!` });
 	}
 	return;
 });
@@ -101,9 +101,9 @@ router.delete('/comment/:commentId', async (req: Request, res: Response) => {
 		await Comment.findByIdAndDelete(req.params.commentId);
 		console.log('after');
 
-		res.json('ok').status(204);
+		res.status(204).json('ok');
 	} catch {
-		res.json({ error: `Can't delete comment: ${req.params.commentId}!` }).status(400);
+		res.status(400).json({ error: `Can't delete comment: ${req.params.commentId}!` });
 	}
 	return;
 });
@@ -111,9 +111,9 @@ router.delete('/comment/:commentId', async (req: Request, res: Response) => {
 router.delete('/:postId', async (req: Request, res: Response) => {
 	try {
 		await Post.findByIdAndDelete(req.params.postId);
-		res.json('ok').status(204);
+		res.status(204).json('ok');
 	} catch {
-		res.json({ error: `Can't delete post: ${req.params.commentId}!` }).status(400);
+		res.status(400).json({ error: `Can't delete post: ${req.params.commentId}!` });
 	}
 	return;
 });
@@ -125,13 +125,17 @@ router.get('/feed', async (req: Request, res: Response) => {
 	try {
 		const user = await User.findById(req.authUser.id);
 		if (!user) {
-			return res.json({ error: `Unauthorized user. You need to be loged in to see other peoples posts!` }).status(404);
+			return res.status(404).json({ error: `Unauthorized user. You need to be loged in to see other peoples posts!` });
 		}
-		const posts = await Post.find({}, {}, { limit: perPage, skip: perPage * (page - 1), sort: { created_at: '-1' } });
+		const posts = await Post.find(
+			{},
+			{},
+			{ limit: perPage, skip: perPage * (page - 1), sort: { created_at: '-1' } },
+		).populate('owner');
 		const count = await Post.count();
 		res.json({ posts, metadata: { count, perPage, page } });
 	} catch {
-		res.json({ error: 'Something went wrong. Try update your feed later.' }).status(400);
+		res.status(400).json({ error: 'Something went wrong. Try update your feed later.' });
 	}
 	return;
 });
@@ -142,17 +146,17 @@ router.get('/me', async (req: Request, res: Response) => {
 	try {
 		const user = await User.findById(req.authUser.id);
 		if (!user) {
-			return res.json({ error: `Unknown user.` }).status(404);
+			return res.status(404).json({ error: `Unknown user.` });
 		}
 		const posts = await Post.find(
 			{ owner: user },
 			{},
 			{ limit: perPage, skip: perPage * (page - 1), sort: { created_at: '-1' } },
-		);
+		).populate('owner');
 		const count = await Post.count({ owner: user });
 		res.json({ posts, metadata: { count, perPage, page } });
 	} catch {
-		res.json({ error: 'Something went wrong. Try update your feed later.' }).status(400);
+		res.status(400).json({ error: 'Something went wrong. Try update your feed later.' });
 	}
 	return;
 });
