@@ -91,16 +91,8 @@ router.post('/:postId/comment', async (req: Request, res: Response) => {
 });
 
 router.delete('/comment/:commentId', async (req: Request, res: Response) => {
-	const { error } = validateComment(req.body);
-	if (error) {
-		return res.status(400).send({ error: error.details[0].message });
-	}
 	try {
-		console.log('before delete', req.params.commentId);
-
 		await Comment.findByIdAndDelete(req.params.commentId);
-		console.log('after');
-
 		res.status(204).json('ok');
 	} catch {
 		res.status(400).json({ error: `Can't delete comment: ${req.params.commentId}!` });
@@ -167,7 +159,7 @@ router.get('/:postId/comments', async (req: Request, res: Response) => {
 			{ post },
 			{},
 			{ limit: perPage, skip: perPage * (page - 1), sort: { created_at: '-1' } },
-		);
+		).populate('creator');
 		const count = await Comment.count({ post });
 		res.json({ comments, metadata: { count, perPage, page } });
 	} catch {
