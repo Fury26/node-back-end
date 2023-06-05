@@ -7,6 +7,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
+import IO from './sockets';
+
 dotenv.config();
 
 const app = express();
@@ -37,6 +39,7 @@ const start = async () => {
 	app.use('/api/posts', postRoutes);
 
 	const port = process.env.PORT || 4000;
+	IO.onConnection();
 	app.listen(port, () => console.log(`Listening on port ${port}...`));
 };
 
