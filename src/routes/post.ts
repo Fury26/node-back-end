@@ -4,6 +4,7 @@ import { authorizationMiddleware } from '../middleware/auth';
 import Post, { validatePost } from '../models/post';
 import PostController from '../controllers/post';
 import Comment, { validateComment } from '../models/comment';
+import IO from '../sockets';
 const router = Router();
 
 router.use(authorizationMiddleware);
@@ -19,6 +20,7 @@ router.post('/', async (req: Request, res: Response) => {
 		}
 		const post = new Post({ title: req.body.title, body: req.body.body, owner: user, comments: [] });
 		await post.save();
+		IO.notifyOnNewPost(post.toObject());
 		res.status(201).json({ post });
 	} catch {
 		res.json({ error: `Can't create your post!` }).status(400);
