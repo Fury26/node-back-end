@@ -7,6 +7,7 @@ export interface IUser extends mongoose.Document {
 	password: string;
 	likedPosts: Schema.Types.ObjectId[];
 	dislikedPosts: Schema.Types.ObjectId[];
+	roles?: string[];
 }
 
 const User = mongoose.model<IUser>(
@@ -37,6 +38,10 @@ const User = mongoose.model<IUser>(
 				ref: 'Post',
 			},
 		],
+		roles: {
+			type: Array<string>,
+			required: false,
+		},
 		dislikedPosts: [
 			{
 				type: Schema.Types.ObjectId,

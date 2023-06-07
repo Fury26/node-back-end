@@ -66,8 +66,8 @@ class IServer extends Server {
 	}
 
 	onConnection() {
-		this.on(MessagesSubscribe.RequestUsers, this.onRequestOnline);
-		return this.on(MessagesSubscribe.Connection, this.#onFirstConnect);
+		this.on(MessagesSubscribe.RequestUsers, this.onRequestOnline.bind(this));
+		return this.on(MessagesSubscribe.Connection, this.#onFirstConnect.bind(this));
 	}
 }
 
